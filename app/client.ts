@@ -9,8 +9,12 @@ interface Bullet {
 }
 
 const state = {
-    horizontal: 400,
-    vertical: 600,
+    player: {
+        x: 400,
+        y: 600,
+        r: 20,
+    },
+    
     isADown: false,
     isDDown: false,
     isWDown: false,
@@ -19,22 +23,23 @@ const state = {
     EnemyY: 200,
     bullets: [] as Bullet[],
     cooldown: 0,
+    
 };
 // @ts-ignore
 window['state'] = state;
 
 function update(): void {
     if (state.isADown) {
-        state.horizontal = state.horizontal - 10;
+        state.player.x = state.player.x - 10;
     }
     if (state.isDDown) {
-        state.horizontal = state.horizontal + 10;
+        state.player.x = state.player.x + 10;
     }
     if (state.isWDown) {
-        state.vertical = state.vertical - 10;
+        state.player.y = state.player.y - 10;
     }
     if (state.isSDown) {
-        state.vertical = state.vertical + 10;
+        state.player.y = state.player.y + 10;
     }
 
     for (let i = 0; i < state.bullets.length; i++){
@@ -54,6 +59,20 @@ function update(): void {
     state.bullets = state.bullets.filter(b => 
         b.y > -100 && b.y < 900 && b.x > -100 && b.x < 900
     );
+
+    //stoping the player from getting off the screen
+    if (state.player.x < 0 + state.player.r) {
+        state.player.x = 0 + state.player.r
+    }
+    if (state.player.x > 800 - state.player.r) {
+        state.player.x = 800 - state.player.r
+    }
+    if (state.player.y < 0 + state.player.r) {
+        state.player.y = 0 + state.player.r
+    }
+    if (state.player.y > 800 - state.player.r) {
+        state.player.y = 800 - state.player.r
+    }
 }
 
 function addBullet(){
@@ -63,6 +82,8 @@ function addBullet(){
         y: 200,
     });
 }
+
+
 
 //setInterval(addBullet, 1000);
 
@@ -89,7 +110,7 @@ function render(context: CanvasRenderingContext2D): void {
    
     // Draw character
     context.beginPath();
-    context.arc(state.horizontal, state.vertical, 20, 0, 2*Math.PI);
+    context.arc(state.player.x, state.player.y, state.player.r, 0, 2*Math.PI);
     context.fillStyle = 'yellow';
     context.fill();
 
@@ -141,3 +162,4 @@ document.addEventListener('keyup', event => {
         state.isSDown = false    
     }
 })
+
