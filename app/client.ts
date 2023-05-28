@@ -6,6 +6,7 @@ initializeGame();
 interface Bullet {
     x: number
     y: number
+    r: number
 }
 
 const state = {
@@ -13,6 +14,7 @@ const state = {
         x: 400,
         y: 600,
         r: 20,
+        hp: 3,
     },
     
     isADown: false,
@@ -23,7 +25,6 @@ const state = {
     EnemyY: 200,
     bullets: [] as Bullet[],
     cooldown: 0,
-    
 };
 // @ts-ignore
 window['state'] = state;
@@ -45,6 +46,17 @@ function update(): void {
     for (let i = 0; i < state.bullets.length; i++){
 
         state.bullets[i].y = state.bullets[i].y + 10;
+
+        //if the bullet touches player, bullet disapears
+
+        const l = state.player.r + state.bullets[i].r
+        const dx = state.player.x - state.bullets[i].x
+        const dy = state.player.y - state.bullets[i].y
+
+        if (l * l > dx * dx + dy * dy){
+            state.bullets.splice(i--, 1);
+            state.player.hp--;
+        }
     }
 
 
@@ -80,6 +92,7 @@ function addBullet(){
      state.bullets.push({
         x: 400,
         y: 200,
+        r: 5,
     });
 }
 
@@ -92,18 +105,26 @@ function render(context: CanvasRenderingContext2D): void {
     // Draw a black background
     context.fillStyle = 'black';
     context.fillRect(0, 0, 800, 800);
+
+    // Draw hpBar
+    for (let i = 0; i < state.player.hp; i++){
+        
+        context.fillStyle = 'red';
+        context.fillRect(700, (i + 1) * 50, 50, 20);
+
+    }
     
      // Draw enemy
     context.beginPath();
     context.arc(state.EnemyX, state.EnemyY, 30, 0, 2*Math.PI);
-    context.fillStyle = 'red';
+    context.fillStyle = 'blue';
     context.fill();
     
     //Draw Bullets
     for (let i = 0; i < state.bullets.length; i++){
        
         context.beginPath();
-        context.arc(state.bullets[i].x, state.bullets[i].y, 5, 0, 2*Math.PI);
+        context.arc(state.bullets[i].x, state.bullets[i].y, state.bullets[i].r, 0, 2*Math.PI);
         context.fillStyle = 'white';
         context.fill();
     }
