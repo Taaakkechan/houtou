@@ -9,27 +9,48 @@ interface Bullet {
     r: number
 }
 
-const state = {
-    player: {
+function getInitialPlayerState() {
+    return {
         x: 400,
         y: 600,
         r: 20,
         hp: 3,
-    },
+    };
+}
+function getInitialEnemyState() {
+    return {
+        x: 400,
+        y: 200,
+        r: 30,
+        c: 100,
+    };
+}
+
+const state = {
     
+    gamestart: false,
+    gameOver: false,
+
+    player: getInitialPlayerState(),
     isADown: false,
     isDDown: false,
     isWDown: false,
     isSDown: false,
-    EnemyX: 400,
-    EnemyY: 200,
-    bullets: [] as Bullet[],
-    cooldown: 0,
+    enemy: getInitialEnemyState(),
+    bullets: [] as Bullet[], 
+    
 };
 // @ts-ignore
 window['state'] = state;
 
 function update(): void {
+
+    if (!state.gamestart) {
+        return;
+    }
+    if (state.gameOver) {
+        return;
+    }
     if (state.isADown) {
         state.player.x = state.player.x - 10;
     }
@@ -58,13 +79,18 @@ function update(): void {
             state.player.hp--;
         }
     }
-
-
-   if (state.cooldown <= 0) {
+    if (state.player.hp <= 0) {
+        state.gameOver = true
+    }
+    if (state.gameOver) {
+        state.player = getInitialPlayerState();
+        state.enemy = getInitialEnemyState();
+    }
+    if (state.enemy.c <= 0) {
         addBullet();
-        state.cooldown = 25;
+        state.enemy.c = 25;
    }else {
-        state.cooldown --;
+        state.enemy.c --;
    }
 
     // Delete bullets that go off of the screen.
@@ -72,7 +98,7 @@ function update(): void {
         b.y > -100 && b.y < 900 && b.x > -100 && b.x < 900
     );
 
-    //stoping the player from getting off the screen
+    //stopping the player from getting off the screen
     if (state.player.x < 0 + state.player.r) {
         state.player.x = 0 + state.player.r
     }
@@ -116,7 +142,7 @@ function render(context: CanvasRenderingContext2D): void {
     
      // Draw enemy
     context.beginPath();
-    context.arc(state.EnemyX, state.EnemyY, 30, 0, 2*Math.PI);
+    context.arc(state.enemy.x, state.enemy.y, state.enemy.r, 0, 2*Math.PI);
     context.fillStyle = 'blue';
     context.fill();
     
@@ -135,6 +161,29 @@ function render(context: CanvasRenderingContext2D): void {
     context.fillStyle = 'yellow';
     context.fill();
 
+    if (!state.gamestart) {
+        context.fillStyle = 'blue';
+        context.fillRect(0, 0, 800, 800);
+        context.fillStyle = 'white';
+        context.textBaseline = 'middle';
+        context.textAlign = 'center';
+        context.font = '50px sans-serif';
+        context.fillText('PRESS SPACE TO START', 400, 400);
+    }
+    if (state.gameOver) {
+        context.fillStyle = 'blue';
+        context.fillRect(0, 0, 800, 800);
+        context.fillStyle = 'white';
+        context.textBaseline = 'middle';
+        context.textAlign = 'center';
+        context.font = '50px sans-serif';
+        context.fillText('GAME OVER', 400, 400);
+        context.fillStyle = 'white';
+        context.textBaseline = 'middle';
+        context.textAlign = 'center';
+        context.font = '30px sans-serif';
+        context.fillText('PRESS SPACE TO START OVER', 400, 500);
+    }
    
 }
 
@@ -152,7 +201,7 @@ setInterval(update, 20);
 
 document.addEventListener('keydown', event => {
     
-    //console.log(event.which)
+    console.log(event.which)
     if (event.which === 65) {   // A    Change here
         state.isADown = true    
     }
@@ -165,7 +214,15 @@ document.addEventListener('keydown', event => {
     if (event.which === 83) {   // S
         state.isSDown = true
     }
-
+    if (event.which === 32) {   // Space
+        state.gamestart = true
+    }
+    if (state.gameOver) {
+        
+        if (event.which === 32) {   // Space
+        state.gameOver = false
+        } 
+    }
 })
 
 document.addEventListener('keyup', event => {
@@ -183,4 +240,3 @@ document.addEventListener('keyup', event => {
         state.isSDown = false    
     }
 })
-
