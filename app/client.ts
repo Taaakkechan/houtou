@@ -7,6 +7,8 @@ interface Bullet {
     x: number
     y: number
     r: number
+    dx: number
+    dy: number
 }
 
 function getInitialPlayerState() {
@@ -20,12 +22,11 @@ function getInitialPlayerState() {
 function getInitialEnemyState() {
     return {
         x: 400,
-        y: 200,
+        y: 10,
         r: 30,
         c: 100,
     };
 }
-
 const state = {
     
     gamestart: false,
@@ -38,6 +39,7 @@ const state = {
     isSDown: false,
     enemy: getInitialEnemyState(),
     bullets: [] as Bullet[], 
+    score: 0
     
 };
 // @ts-ignore
@@ -65,16 +67,19 @@ function update(): void {
     }
 
     for (let i = 0; i < state.bullets.length; i++){
-
-        state.bullets[i].y = state.bullets[i].y + 10;
-
+       
+        const bullet = state.bullets[i];
+         
+         bullet.x = bullet.x + bullet.dx;
+         bullet.y = bullet.y + bullet.dy;
+        
         //if the bullet touches player, bullet disapears
 
-        const l = state.player.r + state.bullets[i].r
-        const dx = state.player.x - state.bullets[i].x
-        const dy = state.player.y - state.bullets[i].y
+        const l = state.player.r + bullet.r
+        const dx = state.player.x - bullet.x
+        const dy = state.player.y - bullet.y
 
-        if (l * l > dx * dx + dy * dy){
+        if (l * l >= dx * dx + dy * dy){
             state.bullets.splice(i--, 1);
             state.player.hp--;
         }
@@ -83,15 +88,17 @@ function update(): void {
         state.gameOver = true
     }
     if (state.gameOver) {
-        state.player = getInitialPlayerState();
-        state.enemy = getInitialEnemyState();
+            state.player = getInitialPlayerState();
+            state.enemy = getInitialEnemyState();
+            state.bullets = [];
+            //state.score = 0
     }
     if (state.enemy.c <= 0) {
         addBullet();
         state.enemy.c = 25;
-   }else {
+    }else {
         state.enemy.c --;
-   }
+    }
 
     // Delete bullets that go off of the screen.
     state.bullets = state.bullets.filter(b => 
@@ -111,16 +118,113 @@ function update(): void {
     if (state.player.y > 800 - state.player.r) {
         state.player.y = 800 - state.player.r
     }
+    state.score = state.score + 1
+    if (!state.gamestart) {
+    }
 }
 
 function addBullet(){
 
-     state.bullets.push({
+    state.bullets.push({
         x: 400,
-        y: 200,
+        y: 10,
         r: 5,
+        dx: 2.5,
+        dy: 5,
+    });
+    state.bullets.push({
+        x: 400,
+        y: 10,
+        r: 5,
+        dx: 0,
+        dy: 10,
+    });
+    state.bullets.push({
+        x: 400,
+        y: 10,
+        r: 5,
+        dx: -2.5,
+        dy: 5,
+    });
+    state.bullets.push({
+        x: 200,
+        y: 10,
+        r: 5,
+        dx: 2.5 * 1.1,
+        dy: 5 * 1.1,
+    });
+    state.bullets.push({
+        x: 200,
+        y: 10,
+        r: 5,
+        dx: -1 * 1.2,
+        dy: 10 * 1.2,
+    });
+    state.bullets.push({
+        x: 600,
+        y: 10,
+        r: 5,
+        dx: -2.5 * 1.3,
+        dy: 5 * 1.3,
+    });
+    state.bullets.push({
+        x: 600,
+        y: 10,
+        r: 5,
+        dx: 1 * 0.9,
+        dy: 10 * 0.9,
+    });
+    state.bullets.push({
+        x: 100,
+        y: 10,
+        r: 5,
+        dx: 2.5 * 0.8,
+        dy: 10 * 0.8,
+    });
+    state.bullets.push({
+        x: 65,
+        y: 10,
+        r: 25,
+        dx: 0,
+        dy: 2,
+    });
+    state.bullets.push({
+        x: 700,
+        y: 10,
+        r: 5,
+        dx: -2.5 * 0.7,
+        dy: 10 * 0.7,
+    });
+    state.bullets.push({
+        x: 735,
+        y: 10,
+        r: 25,
+        dx: 0,
+        dy: 2,
+    });
+    state.bullets.push({
+        x: 400,
+        y: 10,
+        r: 10,
+        dx: (state.player.x - 400) / 100,
+        dy: (state.player.y - 0) / 100,
+    });
+    state.bullets.push({
+        x: 735,
+        y: 800,
+        r: 25,
+        dx: 0,
+        dy: -2,
+    });
+    state.bullets.push({
+        x: 65,
+        y: 800,
+        r: 25,
+        dx: 0,
+        dy: -2,
     });
 }
+
 
 
 
@@ -184,6 +288,13 @@ function render(context: CanvasRenderingContext2D): void {
         context.font = '30px sans-serif';
         context.fillText('PRESS SPACE TO START OVER', 400, 500);
     }
+
+    //score
+    context.fillStyle = 'white';
+    context.textBaseline = 'middle';
+    context.textAlign = 'center';
+    context.font = '40px sans-serif';
+    context.fillText('Score: ' + state.score, 100, 100);
    
 }
 
@@ -221,6 +332,7 @@ document.addEventListener('keydown', event => {
         
         if (event.which === 32) {   // Space
         state.gameOver = false
+        state.score = 0
         } 
     }
 })
