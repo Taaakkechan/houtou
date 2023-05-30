@@ -9,6 +9,7 @@ interface Bullet {
     r: number
     dx: number
     dy: number
+    c?: string
 }
 
 function getInitialPlayerState() {
@@ -20,12 +21,17 @@ function getInitialPlayerState() {
         c: 0,
     };
 }
-function getInitialEnemyState() {
+function getInitialBossState() {
     return {
-        x: 400,
-        y: 10,
+        x: 0,
+        y: 30,
         r: 30,
         c: 50,
+        p: [
+            0,
+            1,
+            2,
+        ]
     };
 }
 const state = {
@@ -39,7 +45,8 @@ const state = {
     isDDown: false,
     isWDown: false,
     isSDown: false,
-    enemy: getInitialEnemyState(),
+    boss: getInitialBossState(), 
+    //minion1: getInitialMinion1State(), 
     bullets: [] as Bullet[], 
     score: 0
     
@@ -99,17 +106,25 @@ function update(): void {
     }
     if (state.gameOver) {
             state.player = getInitialPlayerState();
-            state.enemy = getInitialEnemyState();
+            state.boss = getInitialBossState();
             state.bullets = [];
             //state.score = 0
     }
-    if (state.enemy.c <= 0) {
-        addBullet();
-        state.enemy.c = 25;
-    }else {
-        state.enemy.c --;
+    if (state.boss.c <= 0) {
+        if (state.score > 0 && state.score <= 1300) {
+            addPhase1();
+            if (state.score > 700) {
+                state.boss.c = 25 - (state.score - 700)/20
+                
+            } else {
+                state.boss.c = 25
+            }
+        } else if (state.score > 1500 && state.score <= 3000) {
+            addPhase2();
+        }
+    } else {
+        state.boss.c --;
     }
-
 
     // Delete bullets that go off of the screen.
     state.bullets = state.bullets.filter(b => 
@@ -131,30 +146,77 @@ function update(): void {
     }
     state.score = state.score + 1
     state.player.c = state.player.c - 1
+
+
+    if (!state.gameOver) {
+        
+        const boss = state.boss
+        const t = state.score
+
+        if (t > 0 && t <= 500) {
+            boss.x = boss.x + 1.6
+        } else if (t <= 600) {
+            boss.x = boss.x - 5
+        } else if (t <= 700) {
+            boss.x = boss.x - 2.5
+        } else if (t <= 1000) {
+            boss.x = 400
+            boss.y = 0
+        } else if (t <= 1500) {
+            boss.y = boss.y + 10
+        } else if (t <= 3000) {
+            boss.x = 400
+            boss.y = 400
+            if (t >= 1500 && t <= 1533) {
+                boss.r = 0
+            } else if (t <= 1566) {
+                boss.r = 10
+            } else if (t <= 1599) {
+                boss.r = 20
+            } else if (t <= 1633) {
+                boss.r = 30
+            } else if (t <= 1666) {
+                boss.r = 40
+            } else if (t <= 1700) {
+                boss.r = 50
+            }
+        }
+    }
 }
 
-function addBullet(){
+function addPhase1(){
 
     state.bullets.push({
-        x: 400,
-        y: 10,
+        x: state.boss.x,
+        y: state.boss.y,
         r: 15,
-        dx: 2.5,
-        dy: 5,
+        dx: Math.cos(2/3 * Math.PI) * 10,
+        dy: Math.sin(2/3 * Math.PI) * 10,
+        c: 'orange'
     });
     state.bullets.push({
-        x: 400,
-        y: 10,
+        x: state.boss.x,
+        y: state.boss.y,
         r: 15,
-        dx: 0,
-        dy: 10,
+        dx: Math.cos(0.5 * Math.PI) * 10,
+        dy: Math.sin(0.5 * Math.PI) * 10,
+        c: 'orange'
     });
     state.bullets.push({
-        x: 400,
-        y: 10,
+        x: state.boss.x,
+        y: state.boss.y,
         r: 15,
-        dx: -2.5,
-        dy: 5,
+        dx: Math.cos(1/3 * Math.PI) * 10,
+        dy: Math.sin(1/3 * Math.PI) * 10,
+        c: 'orange'
+    });
+    state.bullets.push({
+        x: state.boss.x,
+        y: state.boss.y,
+        r: 10,
+        dx: (state.player.x - state.boss.x) / 100,
+        dy: (state.player.y - state.boss.y) / 100,
+        c: 'green'
     });
     state.bullets.push({
         x: 200,
@@ -192,49 +254,16 @@ function addBullet(){
         dy: 10 * 0.8,
     });
     state.bullets.push({
-        x: 60,
-        y: 10,
-        r: 25,
-        dx: 0,
-        dy: 2,
-    });
-    state.bullets.push({
         x: 700,
         y: 10,
         r: 5,
         dx: -2.5 * 0.7,
         dy: 10 * 0.7,
     });
-    state.bullets.push({
-        x: 740,
-        y: 10,
-        r: 25,
-        dx: 0,
-        dy: 2,
-    });
-    state.bullets.push({
-        x: 400,
-        y: 10,
-        r: 10,
-        dx: (state.player.x - 400) / 100,
-        dy: (state.player.y - 0) / 100,
-    });
-    state.bullets.push({
-        x: 740,
-        y: 800,
-        r: 25,
-        dx: 0,
-        dy: -2,
-    });
-    state.bullets.push({
-        x: 60,
-        y: 800,
-        r: 25,
-        dx: 0,
-        dy: -2,
-    });
 }
 
+function addPhase2(){
+}
 
 
 
@@ -246,9 +275,9 @@ function render(context: CanvasRenderingContext2D): void {
     context.fillStyle = 'black';
     context.fillRect(0, 0, 800, 800);
     
-     // Draw enemy
+     // Draw boss
     context.beginPath();
-    context.arc(state.enemy.x, state.enemy.y, state.enemy.r, 0, 2*Math.PI);
+    context.arc(state.boss.x, state.boss.y, state.boss.r, 0, 2*Math.PI);
     context.fillStyle = 'blue';
     context.fill();
     
@@ -257,7 +286,7 @@ function render(context: CanvasRenderingContext2D): void {
        
         context.beginPath();
         context.arc(state.bullets[i].x, state.bullets[i].y, state.bullets[i].r, 0, 2*Math.PI);
-        context.fillStyle = 'white';
+        context.fillStyle = state.bullets[i].c || 'white';
         context.fill();
     }
         // Draw hpBar
