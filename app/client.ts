@@ -17,6 +17,7 @@ function getInitialPlayerState() {
         y: 600,
         r: 20,
         hp: 3,
+        c: 0,
     };
 }
 function getInitialEnemyState() {
@@ -24,13 +25,14 @@ function getInitialEnemyState() {
         x: 400,
         y: 10,
         r: 30,
-        c: 100,
+        c: 50,
     };
 }
 const state = {
     
     gamestart: false,
     gameOver: false,
+    pause: false,
 
     player: getInitialPlayerState(),
     isADown: false,
@@ -47,6 +49,9 @@ window['state'] = state;
 
 function update(): void {
 
+    if (state.pause) {
+        return;
+    }
     if (!state.gamestart) {
         return;
     }
@@ -80,8 +85,13 @@ function update(): void {
         const dy = state.player.y - bullet.y
 
         if (l * l >= dx * dx + dy * dy){
+            
             state.bullets.splice(i--, 1);
-            state.player.hp--;
+            
+            if (state.player.c <= 0) {
+                state.player.hp--;
+                state.player.c = 37.5
+            }     
         }
     }
     if (state.player.hp <= 0) {
@@ -100,27 +110,27 @@ function update(): void {
         state.enemy.c --;
     }
 
+
     // Delete bullets that go off of the screen.
     state.bullets = state.bullets.filter(b => 
         b.y > -100 && b.y < 900 && b.x > -100 && b.x < 900
     );
 
     //stopping the player from getting off the screen
-    if (state.player.x < 0 + state.player.r) {
-        state.player.x = 0 + state.player.r
+    if (state.player.x < 10 + state.player.r) {
+        state.player.x = 10 + state.player.r
     }
-    if (state.player.x > 800 - state.player.r) {
-        state.player.x = 800 - state.player.r
+    if (state.player.x > 790 - state.player.r) {
+        state.player.x = 790 - state.player.r
     }
-    if (state.player.y < 0 + state.player.r) {
-        state.player.y = 0 + state.player.r
+    if (state.player.y < 10 + state.player.r) {
+        state.player.y = 10 + state.player.r
     }
-    if (state.player.y > 800 - state.player.r) {
-        state.player.y = 800 - state.player.r
+    if (state.player.y > 790 - state.player.r) {
+        state.player.y = 790 - state.player.r
     }
     state.score = state.score + 1
-    if (!state.gamestart) {
-    }
+    state.player.c = state.player.c - 1
 }
 
 function addBullet(){
@@ -128,21 +138,21 @@ function addBullet(){
     state.bullets.push({
         x: 400,
         y: 10,
-        r: 5,
+        r: 15,
         dx: 2.5,
         dy: 5,
     });
     state.bullets.push({
         x: 400,
         y: 10,
-        r: 5,
+        r: 15,
         dx: 0,
         dy: 10,
     });
     state.bullets.push({
         x: 400,
         y: 10,
-        r: 5,
+        r: 15,
         dx: -2.5,
         dy: 5,
     });
@@ -182,7 +192,7 @@ function addBullet(){
         dy: 10 * 0.8,
     });
     state.bullets.push({
-        x: 65,
+        x: 60,
         y: 10,
         r: 25,
         dx: 0,
@@ -196,7 +206,7 @@ function addBullet(){
         dy: 10 * 0.7,
     });
     state.bullets.push({
-        x: 735,
+        x: 740,
         y: 10,
         r: 25,
         dx: 0,
@@ -210,14 +220,14 @@ function addBullet(){
         dy: (state.player.y - 0) / 100,
     });
     state.bullets.push({
-        x: 735,
+        x: 740,
         y: 800,
         r: 25,
         dx: 0,
         dy: -2,
     });
     state.bullets.push({
-        x: 65,
+        x: 60,
         y: 800,
         r: 25,
         dx: 0,
@@ -235,14 +245,6 @@ function render(context: CanvasRenderingContext2D): void {
     // Draw a black background
     context.fillStyle = 'black';
     context.fillRect(0, 0, 800, 800);
-
-    // Draw hpBar
-    for (let i = 0; i < state.player.hp; i++){
-        
-        context.fillStyle = 'red';
-        context.fillRect(700, (i + 1) * 50, 50, 20);
-
-    }
     
      // Draw enemy
     context.beginPath();
@@ -258,12 +260,26 @@ function render(context: CanvasRenderingContext2D): void {
         context.fillStyle = 'white';
         context.fill();
     }
+        // Draw hpBar
+    for (let i = 0; i < state.player.hp; i++){
+        
+        context.fillStyle = 'red';
+        context.fillRect(700, (i + 1) * 50, 50, 20);
+
+    }
    
     // Draw character
-    context.beginPath();
-    context.arc(state.player.x, state.player.y, state.player.r, 0, 2*Math.PI);
-    context.fillStyle = 'yellow';
-    context.fill();
+    if (state.player.c <= 0) {
+        context.beginPath();
+        context.arc(state.player.x, state.player.y, state.player.r, 0, 2*Math.PI);
+        context.fillStyle = 'yellow';
+        context.fill();
+    }else{
+        context.beginPath();
+        context.arc(state.player.x, state.player.y, state.player.r, 0, 2*Math.PI);
+        context.fillStyle = 'blue';
+        context.fill();
+    }
 
     if (!state.gamestart) {
         context.fillStyle = 'blue';
@@ -288,6 +304,13 @@ function render(context: CanvasRenderingContext2D): void {
         context.font = '30px sans-serif';
         context.fillText('PRESS SPACE TO START OVER', 400, 500);
     }
+    if (state.pause){
+        context.fillStyle = 'red';
+        context.textBaseline = 'middle';
+        context.textAlign = 'center';
+        context.font = '50px sans-serif';
+        context.fillText('PAUSE', 400, 400);
+    }
 
     //score
     context.fillStyle = 'white';
@@ -295,7 +318,6 @@ function render(context: CanvasRenderingContext2D): void {
     context.textAlign = 'center';
     context.font = '40px sans-serif';
     context.fillText('Score: ' + state.score, 100, 100);
-   
 }
 
 function renderLoop(): void {
@@ -334,6 +356,18 @@ document.addEventListener('keydown', event => {
         state.gameOver = false
         state.score = 0
         } 
+    }
+    if (state.gameOver) {
+        return;
+    }
+    if (state.gamestart) {
+        if (event.which === 13) {   // Enter
+            if (state.pause) {
+                state.pause = false
+            } else {
+                state.pause = true
+            }
+        }
     }
 })
 
