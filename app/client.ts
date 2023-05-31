@@ -16,8 +16,8 @@ function getInitialPlayerState() {
     return {
         x: 400,
         y: 600,
-        r: 20,
-        hp: 3,
+        r: 15,
+        hp: 15,
         c: 0,
     };
 }
@@ -27,11 +27,7 @@ function getInitialBossState() {
         y: 30,
         r: 30,
         c: 50,
-        p: [
-            0,
-            1,
-            2,
-        ]
+        c2: 0,
     };
 }
 const state = {
@@ -48,7 +44,8 @@ const state = {
     boss: getInitialBossState(), 
     //minion1: getInitialMinion1State(), 
     bullets: [] as Bullet[], 
-    score: 0
+    score: 0,
+    t: 0,
     
 };
 // @ts-ignore
@@ -66,16 +63,16 @@ function update(): void {
         return;
     }
     if (state.isADown) {
-        state.player.x = state.player.x - 10;
+        state.player.x = state.player.x - 7.5;
     }
     if (state.isDDown) {
-        state.player.x = state.player.x + 10;
+        state.player.x = state.player.x + 7.5;
     }
     if (state.isWDown) {
-        state.player.y = state.player.y - 10;
+        state.player.y = state.player.y - 7.5;
     }
     if (state.isSDown) {
-        state.player.y = state.player.y + 10;
+        state.player.y = state.player.y + 7.5;
     }
 
     for (let i = 0; i < state.bullets.length; i++){
@@ -91,10 +88,10 @@ function update(): void {
         const dx = state.player.x - bullet.x
         const dy = state.player.y - bullet.y
 
-        if (l * l >= dx * dx + dy * dy){
+        if (l * l > dx * dx + dy * dy){
             
             state.bullets.splice(i--, 1);
-            
+            //state.player.c = 37.5
             if (state.player.c <= 0) {
                 state.player.hp--;
                 state.player.c = 37.5
@@ -111,17 +108,46 @@ function update(): void {
             //state.score = 0
     }
     if (state.boss.c <= 0) {
-        if (state.score > 0 && state.score <= 1300) {
+        
+        const score = state.score
+
+        if (score > 0 && score <= 1300) {
             addPhase1();
-            if (state.score > 700) {
-                state.boss.c = 25 - (state.score - 700)/20
+            if (score > 700) {
+                state.boss.c = 25 - (score - 700)/20
                 
             } else {
                 state.boss.c = 25
             }
-        } else if (state.score > 1500 && state.score <= 3000) {
+        } else if (score > 1800 && score <= 1820) {
             addPhase2();
-        }
+        } else if (score > 1830 && score <= 1840) {
+            addPhase3();
+        } else if (score > 1860 && score <= 1880) {
+            addPhase2();
+        } else if (score > 1950 && score <= 2100) {
+            addPhase4();
+            state.boss.c = 25
+        } else if (score > 2000 && score <= 2800) {
+            addPhase5();
+            state.t++;
+            state.boss.c = 5
+        } else if (score > 2800 && score <= 3600) {
+            addPhase6();
+            state.t++;
+            state.boss.c = 5
+        } if (state.boss.c2 <= 0) {
+            if (score > 2400 && score <= 3600) {
+                addPhase7(); 
+                state.boss.c2 = 15
+            } 
+            if (score > 2000 && score <= 3600) {
+                addPhase8();
+                state.boss.c2 = 15
+            } 
+        } else {
+                state.boss.c2 --;
+            } 
     } else {
         state.boss.c --;
     }
@@ -132,17 +158,17 @@ function update(): void {
     );
 
     //stopping the player from getting off the screen
-    if (state.player.x < 10 + state.player.r) {
-        state.player.x = 10 + state.player.r
+    if (state.player.x < 0 + state.player.r) {
+        state.player.x = 0 + state.player.r
     }
-    if (state.player.x > 790 - state.player.r) {
-        state.player.x = 790 - state.player.r
+    if (state.player.x > 800 - state.player.r) {
+        state.player.x = 800 - state.player.r
     }
-    if (state.player.y < 10 + state.player.r) {
-        state.player.y = 10 + state.player.r
+    if (state.player.y < 0 + state.player.r) {
+        state.player.y = 0 + state.player.r
     }
-    if (state.player.y > 790 - state.player.r) {
-        state.player.y = 790 - state.player.r
+    if (state.player.y > 800 - state.player.r) {
+        state.player.y = 800 - state.player.r
     }
     state.score = state.score + 1
     state.player.c = state.player.c - 1
@@ -157,9 +183,9 @@ function update(): void {
             boss.x = boss.x + 1.6
         } else if (t <= 600) {
             boss.x = boss.x - 5
-        } else if (t <= 700) {
+        } else if (t <= 750) {
             boss.x = boss.x - 2.5
-        } else if (t <= 1000) {
+        } else if (t <= 800) {
             boss.x = 400
             boss.y = 0
         } else if (t <= 1500) {
@@ -186,30 +212,16 @@ function update(): void {
 
 function addPhase1(){
 
-    state.bullets.push({
-        x: state.boss.x,
-        y: state.boss.y,
-        r: 15,
-        dx: Math.cos(2/3 * Math.PI) * 10,
-        dy: Math.sin(2/3 * Math.PI) * 10,
-        c: 'orange'
-    });
-    state.bullets.push({
-        x: state.boss.x,
-        y: state.boss.y,
-        r: 15,
-        dx: Math.cos(0.5 * Math.PI) * 10,
-        dy: Math.sin(0.5 * Math.PI) * 10,
-        c: 'orange'
-    });
-    state.bullets.push({
-        x: state.boss.x,
-        y: state.boss.y,
-        r: 15,
-        dx: Math.cos(1/3 * Math.PI) * 10,
-        dy: Math.sin(1/3 * Math.PI) * 10,
-        c: 'orange'
-    });
+    for (let i = 0; i < 3; i++){
+            state.bullets.push({
+            x: state.boss.x,
+            y: state.boss.y,
+            r: 15,
+            dx: Math.cos((i + 2)/6 * Math.PI) * 8,
+            dy: Math.sin((i + 2)/6 * Math.PI) * 8,
+            c: 'orange'
+            });
+    }
     state.bullets.push({
         x: state.boss.x,
         y: state.boss.y,
@@ -218,68 +230,210 @@ function addPhase1(){
         dy: (state.player.y - state.boss.y) / 100,
         c: 'green'
     });
-    state.bullets.push({
-        x: 200,
-        y: 10,
-        r: 5,
-        dx: 2.5 * 1.1,
-        dy: 5 * 1.1,
-    });
-    state.bullets.push({
-        x: 200,
-        y: 10,
-        r: 5,
-        dx: -1 * 1.2,
-        dy: 10 * 1.2,
-    });
-    state.bullets.push({
-        x: 600,
-        y: 10,
-        r: 5,
-        dx: -2.5 * 1.3,
-        dy: 5 * 1.3,
-    });
-    state.bullets.push({
-        x: 600,
-        y: 10,
-        r: 5,
-        dx: 1 * 0.9,
-        dy: 10 * 0.9,
-    });
-    state.bullets.push({
-        x: 100,
-        y: 10,
-        r: 5,
-        dx: 2.5 * 0.8,
-        dy: 10 * 0.8,
-    });
-    state.bullets.push({
-        x: 700,
-        y: 10,
-        r: 5,
-        dx: -2.5 * 0.7,
-        dy: 10 * 0.7,
-    });
+    for (let i = 0; i < 2; i++){
+            state.bullets.push({
+            x: 200,
+            y: 10,
+            r: 5,
+            dx: Math.cos((i + 1)/3 * Math.PI) * 10 * (Math.random() + 0.25),
+            dy: Math.sin((i + 1)/3 * Math.PI) * 10 * (Math.random() + 0.25),
+            });
+    }
+    for (let i = 0; i < 2; i++){
+            state.bullets.push({
+            x: 600,
+            y: 10,
+            r: 5,
+            dx: -Math.cos((i + 1)/3 * Math.PI) * 10 * (Math.random() + 0.25),
+            dy: Math.sin((i + 1)/3 * Math.PI) * 10 * (Math.random() + 0.25),
+            });
+    }
 }
 
 function addPhase2(){
+   
+     for (let i = 0; i < 8; i++){
+
+        state.bullets.push({
+        x: state.boss.x,
+        y: state.boss.y,
+        r: 15,
+        dx: Math.cos(i/4 * Math.PI) * 16,
+        dy: Math.sin(i/4 * Math.PI) * 16,
+        c: 'orange'
+        });
+    }
 }
 
+function addPhase3(){
 
+     for (let i = 0; i < 8; i++){
+
+        state.bullets.push({
+            x: state.boss.x,
+            y: state.boss.y,
+            r: 15,
+            dx: Math.cos((i/4 + 1/8)* Math.PI) * 30,
+            dy: Math.sin((i/4 + 1/8)* Math.PI) * 30,
+            c: 'orange'
+        });
+    }
+}
+
+function addPhase4(){
+
+     for (let i = 0; i < 20; i++){
+
+        state.bullets.push({
+            x: state.boss.x,
+            y: state.boss.y,
+            r: 5,
+            dx: Math.cos((i/10)* Math.PI) * 5 * (Math.random() + 0.25),
+            dy: Math.sin((i/10)* Math.PI) * 5 * (Math.random() + 0.25),
+        });
+    }
+}
+
+function addPhase5(){
+
+     for (let i = 0; i < 3; i++){
+
+        state.bullets.push({
+            x: state.boss.x,
+            y: state.boss.y,
+            r: 15,
+            dx: Math.cos((i/1.5 + state.t/50)* Math.PI) * 5,
+            dy: Math.sin((i/1.5 + state.t/50)* Math.PI) * 5,
+            c: 'lightgray'
+        });
+    }
+}
+function addBulletCircle(bulletCount: number, speed = 5, theta = 0, bulletProps: Partial<Bullet> = {}): void {
+     for (let i = 0; i < bulletCount; i++) {
+        const shotTheta = theta + i / bulletCount * 2 * Math.PI;
+        state.bullets.push({
+            x: state.boss.x,
+            y: state.boss.y,
+            r: 15,
+            dx: speed * Math.cos(shotTheta),
+            dy: speed * Math.sin(shotTheta),
+            ...bulletProps,
+        });
+    }
+}
+function addPhase6(){
+    addBulletCircle(6, 5, Math.PI * state.t / 50, {c: 'lightgray', r: 15});
+     /*for (let i = 0; i < 6; i++){
+
+        state.bullets.push({
+            x: state.boss.x,
+            y: state.boss.y,
+            r: 15,
+            dx: Math.cos((i/3 + state.t/50)* Math.PI) * 5,
+            dy: Math.sin((i/3 + state.t/50)* Math.PI) * 5,
+            c: 'lightgray'
+        });
+    }*/
+}
+function addPhase7(){
+
+     addBulletCircle(8, 2.5, Math.random() * 0.0001, {x: 100, y: 100, c: 'orange', r: 10});
+     /*for (let i = 0; i < 8; i++){
+
+        state.bullets.push({
+            x: 100,
+            y: 100,
+            r: 10,
+            dx: Math.cos((i/4 + Math.random() * 0.0001)* Math.PI) * 2.5,
+            dy: Math.sin((i/4 + Math.random() * 0.0001)* Math.PI) * 2.5,
+            c: 'orange'
+        });
+    }*/
+    
+    addBulletCircle(8, 2.5, Math.random() * 0.0001, {x: 700, y: 100, r: 10});
+    
+    addBulletCircle(8, 2.5, Math.random() * 0.0001, {x: 100, y: 700, c: 'green', r: 10});
+    
+    addBulletCircle(8, 2.5, Math.random() * 0.0001, {x: 700, y: 700, c: 'purple', r: 10});
+    
+}
+function addPhase8(){
+
+     for (let i = 0; i < 20; i++){
+
+        state.bullets.push({
+            x: 800 - state.player.x,
+            y: 800 - state.player.y,
+            r: 10,
+            dx: Math.cos((i/10 + state.t/1000)* Math.PI) * 2.5,
+            dy: Math.sin((i/10 + state.t/1000)* Math.PI) * 2.5,
+            c: 'red'
+        });
+    }
+}
 
 //setInterval(addBullet, 1000);
 
 function render(context: CanvasRenderingContext2D): void {
     
+    
+    const score = state.score
+
     // Draw a black background
     context.fillStyle = 'black';
     context.fillRect(0, 0, 800, 800);
     
-     // Draw boss
+     // Draw character
+    if (state.player.c <= 0) {
+        context.beginPath();
+        context.arc(state.player.x, state.player.y, state.player.r, 0, 2*Math.PI);
+        context.fillStyle = 'yellow';
+        context.fill();
+    }else{
+        context.beginPath();
+        context.arc(state.player.x, state.player.y, state.player.r, 0, 2*Math.PI);
+        context.fillStyle = 'blue';
+        context.fill();
+    }
+
+    // Draw boss
     context.beginPath();
     context.arc(state.boss.x, state.boss.y, state.boss.r, 0, 2*Math.PI);
     context.fillStyle = 'blue';
     context.fill();
+
+
+    //Draw tuurets
+    if (score > 2300 && score <= 3600) {
+        context.beginPath();
+        context.arc(700, 100, 15, 0, 2*Math.PI);
+        context.fillStyle = 'gray';
+        context.fill();
+    }
+    if (score > 2300 && score <= 3600) {
+        context.beginPath();
+        context.arc(100, 700, 15, 0, 2*Math.PI);
+        context.fillStyle = 'gray';
+        context.fill();
+    }
+    if (score > 2300 && score <= 3600) {
+        context.beginPath();
+        context.arc(100, 100, 15, 0, 2*Math.PI);
+        context.fillStyle = 'gray';
+        context.fill();
+    }
+    if (score > 2300 && score <= 3600) {
+        context.beginPath();
+        context.arc(700, 700, 15, 0, 2*Math.PI);
+        context.fillStyle = 'gray';
+        context.fill();
+    }
+    if (score > 2000 && score <= 3600) {
+        context.beginPath();
+        context.arc(800 - state.player.x, 800 - state.player.y, 15, 0, 2*Math.PI);
+        context.fillStyle = 'gray';
+        context.fill();
+    } 
     
     //Draw Bullets
     for (let i = 0; i < state.bullets.length; i++){
@@ -295,19 +449,6 @@ function render(context: CanvasRenderingContext2D): void {
         context.fillStyle = 'red';
         context.fillRect(700, (i + 1) * 50, 50, 20);
 
-    }
-   
-    // Draw character
-    if (state.player.c <= 0) {
-        context.beginPath();
-        context.arc(state.player.x, state.player.y, state.player.r, 0, 2*Math.PI);
-        context.fillStyle = 'yellow';
-        context.fill();
-    }else{
-        context.beginPath();
-        context.arc(state.player.x, state.player.y, state.player.r, 0, 2*Math.PI);
-        context.fillStyle = 'blue';
-        context.fill();
     }
 
     if (!state.gamestart) {
