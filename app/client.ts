@@ -377,9 +377,19 @@ function update(): void {
         state.gameOver = true
     }
     if (state.gameOver) {
+            
+        const minion = state.minions
             state.player = getInitialPlayerState();
             state.boss = getInitialBossState();
             state.bullets = [];
+            minion[0].x = 100
+            minion[0].y = 100
+            minion[1].x = 100
+            minion[1].y = 700
+            minion[2].x = 700
+            minion[2].y = 100
+            minion[3].x = 700
+            minion[3].y = 700
             
     }
 
