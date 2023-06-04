@@ -30,6 +30,9 @@ function getInitialBossState() {
         c2: 0,
     };
 }
+const image = new Image();
+
+image.src = 'gfx/houtou.jpeg';
 
 const state = {
     
@@ -310,6 +313,7 @@ function update(): void {
     } else if (state.gt >= 7200) {
         state.gameComp = true
         state.score = state.score + state.player.hp * 1000
+
     }
     
     if (state.isADown) {
@@ -887,6 +891,12 @@ function render(context: CanvasRenderingContext2D): void {
         context.textAlign = 'center';
         context.font = '30px sans-serif';
         context.fillText('Score: ' + state.score, 400, 500);
+        context.drawImage(image,
+            
+            0, 0, 252, 200, 
+            274, 100, 252, 200
+            
+        )
     }
     if (state.pause){
         context.fillStyle = 'red';
